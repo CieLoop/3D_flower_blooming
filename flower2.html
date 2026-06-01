@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gửi tặng em</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #050508;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Dancing Script', cursive;
+  }
+  #canvas-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+  canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  #message {
+    position: absolute;
+    bottom: 6vh;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #message .line1 {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(1.4rem, 4vw, 2.6rem);
+    color: #ffb3c6;
+    letter-spacing: 0.04em;
+    text-shadow:
+      0 0 18px rgba(255, 100, 130, 0.9),
+      0 0 40px rgba(255, 60, 100, 0.5),
+      0 0 80px rgba(255, 30, 80, 0.25);
+    animation: textGlow 3s ease-in-out infinite alternate, fadeInUp 2s ease 0.5s forwards;
+    opacity: 0;
+  }
+  #message .hearts {
+    font-size: clamp(1rem, 2.5vw, 1.6rem);
+    color: #ff6b8a;
+    animation: heartBeat 1.4s ease-in-out infinite, fadeInUp 2s ease 1s forwards;
+    opacity: 0;
+    display: block;
+    margin-top: 6px;
+    letter-spacing: 0.3em;
+    text-shadow: 0 0 12px rgba(255, 80, 120, 0.8);
+  }
+  @keyframes textGlow {
+    from { text-shadow: 0 0 18px rgba(255,100,130,0.9), 0 0 40px rgba(255,60,100,0.5); }
+    to   { text-shadow: 0 0 28px rgba(255,150,180,1),   0 0 70px rgba(255,80,130,0.8), 0 0 120px rgba(255,40,100,0.4); }
+  }
+  @keyframes heartBeat {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.18); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  /* Particle overlay */
+  #particles {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .petal-particle {
+    position: absolute;
+    width: 6px; height: 6px;
+    border-radius: 50% 0 50% 0;
+    opacity: 0;
+    animation: petalFall linear infinite;
+  }
+  @keyframes petalFall {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.7; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="canvas-container">
+  <canvas id="webgl"></canvas>
+  <div id="particles"></div>
+  <div id="message">
+    <span class="line1">Gửi tặng em bé 20 tuổi của anh !!!</span>
+    <span class="hearts">❤ ❤ ❤</span>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── Petal particles ────────────────────────────────────────────────────
+const container = document.getElementById('particles');
+const colors = ['#ff6b8a','#ff9eb5','#ffb3c6','#ff4d79','#ff85a1','#ffc2d1'];
+for (let i = 0; i < 35; i++) {
+  const p = document.createElement('div');
+  p.className = 'petal-particle';
+  p.style.left = Math.random() * 100 + 'vw';
+  p.style.top   = '-10px';
+  p.style.background = colors[Math.floor(Math.random() * colors.length)];
+  p.style.animationDuration = (6 + Math.random() * 10) + 's';
+  p.style.animationDelay   = (Math.random() * 12) + 's';
+  p.style.width  = (4 + Math.random() * 7) + 'px';
+  p.style.height = (4 + Math.random() * 7) + 'px';
+  container.appendChild(p);
+}
+
+// ─── Three.js Scene ─────────────────────────────────────────────────────
+const canvas = document.getElementById('webgl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 2, 10);
+camera.lookAt(0, 0.5, 0);
+// ── Lights ────────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0x180010, 1.2));
+const pinkLight = new THREE.PointLight(0xff3366, 3.5, 22);
+pinkLight.position.set(2, 4, 4);
+scene.add(pinkLight);
+const roseLight = new THREE.PointLight(0xff80aa, 2.5, 18);
+roseLight.position.set(-3, 3, 3);
+scene.add(roseLight);
+const greenLight = new THREE.PointLight(0x00ff88, 1.5, 14);
+greenLight.position.set(0, -2, 2);
+scene.add(greenLight);
+const warmLight = new THREE.PointLight(0xffaa55, 2, 10);
+warmLight.position.set(0, 1, 5);
+scene.add(warmLight);
+const innerGlow = new THREE.PointLight(0xffdd88, 0, 8);
+innerGlow.position.set(0, 0.3, 0);
+scene.add(innerGlow);
+// ── Easing ───────────────────────────────────────────────────────────────
+function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+function easeInOutQuart(t) { return t < 0.5 ? 8*t*t*t*t : 1 - Math.pow(-2*t+2,4)/2; }
+function easeOutBack(t) {
+  const c1 = 1.70158, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+}
+function easeOutExpo(t) { return t === 1 ? 1 : 1 - Math.pow(2, -10 * t); }
+
+// ── Tube helper ───────────────────────────────────────────────────────────
+function tubeLine(points, color, radius = 0.025, radialSegments = 6, tubularSegments = 32) {
+  const curve = new THREE.CatmullRomCurve3(points);
+  const geo   = new THREE.TubeGeometry(curve, tubularSegments, radius, radialSegments, false);
+  const mat   = new THREE.MeshPhongMaterial({
+    color,
+    emissive: color,
+    emissiveIntensity: 0.35,
+    shininess: 100,
+    transparent: true,
+    opacity: 0.92,
+    side: THREE.DoubleSide
+  });
+  return new THREE.Mesh(geo, mat);
+}
+// Easing functions
+function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+function easeInOutQuart(t) { return t < 0.5 ? 8*t*t*t*t : 1 - Math.pow(-2*t+2,4)/2; }
+function easeOutBack(t) {
+  const c1 = 1.70158, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+}
+function easeOutExpo(t) { return t === 1 ? 1 : 1 - Math.pow(2, -10 * t); }
+// ── Stem ─────────────────────────────────────────────────────────────────
+const stemPts = [
+  new THREE.Vector3(0, -3.2, 0),
+  new THREE.Vector3(0.1, -2.2, 0.1),
+  new THREE.Vector3(-0.05, -1.2, 0.05),
+  new THREE.Vector3(0, 0, 0)
+];
+scene.add(tubeLine(stemPts, 0x228833, 0.045, 6, 30));
+// ── Leaves ───────────────────────────────────────────────────────────────
+function addLeaf(startY, side, tilt) {
+  const s = side;
+  const pts = [
+    new THREE.Vector3(0, startY, 0),
+    new THREE.Vector3(s*0.5, startY + 0.4, tilt * 0.2),
+    new THREE.Vector3(s*1.1, startY + 0.6, tilt * 0.5),
+    new THREE.Vector3(s*1.6, startY + 0.35, tilt * 0.3),
+    new THREE.Vector3(s*1.05, startY + 0.1, 0)
+  ];
+  scene.add(tubeLine(pts, 0x33bb44, 0.032, 6, 30));
+  
+  // Veins
+  for (let t = 0.15; t < 0.95; t += 0.18) {
+    const mid = new THREE.Vector3().lerpVectors(pts[0], pts[3], t);
+    scene.add(tubeLine([
+      mid.clone(),
+      new THREE.Vector3(mid.x + s*0.08, mid.y + 0.18, mid.z + s*0.1)
+    ], 0x55dd66, 0.011, 4, 10));
+  }
+}
+addLeaf(-1.9,  1,  0.3);
+addLeaf(-1.9, -1, -0.3);
+addLeaf(-1.1,  1,  0.5);
+addLeaf(-1.3, -1, -0.4);
+
+// Create petal with MANY ribs for smooth, organic wing-like opening
+function makePetal(angleY, layer, openness, colorHex) {
+  const petalGroup = new THREE.Group();
+  petalGroup.rotation.y = angleY;
+
+  // INCREASED RIB COUNT for smooth opening (was 3, now many!)
+  const ribCount   = 9 + layer * 3;         // 9 → 27 ribs for extremely smooth wings
+  const halfWidth  = 0.16 + layer * 0.06;   
+  const length     = 0.6 + layer * 0.18;
+  const arch       = 0.5 + layer * 0.1;
+  const baseZ      = layer * 0.08;
+
+  // Create each rib as a curved tube
+  for (let ri = 0; ri < ribCount; ri++) {
+    // Spread ribs left→right: -1 = left edge, 0 = center, +1 = right edge
+    const u = (ribCount === 1) ? 0 : (ri / (ribCount - 1)) * 2 - 1;
+    
+    // Elliptical profile: wider in middle, tapers at edges
+    const widthFactor = Math.sqrt(Math.max(0, 1 - u * u));
+    const xPos = u * halfWidth * widthFactor;
+    
+    // Rib properties scale with position
+    const ribArch = arch * (1 - Math.abs(u) * 0.4);
+    const ribLength = length * (0.8 + widthFactor * 0.2);
+    
+    // Rib radius: thicker at center, thinner at edges
+    const ribRadius = 0.015 + (0.006 * widthFactor);
+
+    // Build curved rib points
+    const pts = [
+      new THREE.Vector3(xPos * 0.1, 0,                      baseZ),
+      new THREE.Vector3(xPos * 0.5, ribLength * 0.25,       baseZ + ribLength * 0.25),
+      new THREE.Vector3(xPos * 0.9, ribLength * 0.6,        baseZ + ribLength * 0.1 - ribArch * 0.3),
+      new THREE.Vector3(xPos * 0.8, ribLength * 0.85,       baseZ - ribLength * 0.05 - ribArch * 0.6),
+      new THREE.Vector3(xPos * 0.6, ribLength,              baseZ - ribLength * 0.15 - ribArch * 0.8)
+    ];
+    
+    petalGroup.add(tubeLine(pts, colorHex, ribRadius, 5));
+  }
+
+  // Cross-veins: connect ribs at different heights for web-like texture
+  const veinHeights = [0.28, 0.50, 0.68, 0.82];
+  veinHeights.forEach(vh => {
+    const leftPts = [];
+    const rightPts = [];
+    
+    // Sample left and right edges at this height
+    for (let step = 0; step <= 4; step++) {
+      const frac = step / 4;
+      const xSample = frac * halfWidth - halfWidth * 0.5;
+      const wf = Math.sqrt(Math.max(0, 1 - (xSample / halfWidth) ** 2));
+      const ra = arch * (1 - Math.abs(xSample / halfWidth) * 0.4);
+      const rl = length * (0.8 + wf * 0.2);
+      
+      const veinPt = new THREE.Vector3(
+        xSample * wf,
+        rl * vh,
+        baseZ + rl * (0.25 - vh * 0.3) - ra * Math.min(vh / 0.68, 1)
+      );
+      
+      if (step <= 2) leftPts.push(veinPt);
+      if (step >= 2) rightPts.push(veinPt);
+    }
+    
+    petalGroup.add(tubeLine(leftPts, colorHex, 0.008, 4));
+    petalGroup.add(tubeLine(rightPts, colorHex, 0.008, 4));
+  });
+
+  return petalGroup;
+}
+// ── Rose petals with dramatic bloom animation ────────────────────────────
+const flowerGroup = new THREE.Group();
+scene.add(flowerGroup);
+
+const petalColors = [0xff2255, 0xff4477, 0xff6699, 0xff99bb, 0xffaac8, 0xffbbcc];
+const petalAnimData = [];
+
+// Layer configuration
+const layerCount     = 6;
+const petalsPerLayer = [5, 6, 7, 8, 9, 10];
+const baseOpenness   = [0.05, 0.18, 0.38, 0.62, 0.82, 1.0];
+const baseTiltAngles = [0.05, 0.15, 0.28, 0.4, 0.52, 0.62];
+
+for (let L = 0; L < layerCount; L++) {
+  const n     = petalsPerLayer[L];
+  const color = petalColors[Math.min(L, petalColors.length - 1)];
+  
+  for (let i = 0; i < n; i++) {
+    const angle  = (i / n) * Math.PI * 2 + L * 0.31;
+    const petal  = makePetal(angle, L, baseOpenness[L], color);
+    
+    // Store animation data
+    petal.userData = {
+      layer: L,
+      baseAngle: angle,
+      baseOpenness: baseOpenness[L],
+      baseTilt: baseTiltAngles[L],
+      startScale: 0.3 + L * 0.05
+    };
+    
+    petal.rotation.x = baseTiltAngles[L];
+    petal.scale.set(1, 0.3 + L * 0.05, 1);
+    
+    petalAnimData.push(petal);
+    flowerGroup.add(petal);
+  }
+}
+
+// Center stamen dots
+for (let i = 0; i < 18; i++) {
+  const a = (i / 18) * Math.PI * 2;
+  const r = Math.random() * 0.18;
+  const geo = new THREE.SphereGeometry(0.03 + Math.random() * 0.02, 6, 6);
+  const mat = new THREE.MeshPhongMaterial({ color: 0xffee44, emissive: 0xffcc00, emissiveIntensity: 0.6 });
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(Math.cos(a) * r, 0.05, Math.sin(a) * r);
+  flowerGroup.add(m);
+}
+// Position flower at top of stem
+flowerGroup.position.set(0, 0.2, 0);
+flowerGroup.rotation.x = -0.18; // slight forward lean toward camera
+// ── Sparkle stars ─────────────────────────────────────────────────────────
+const starGeo = new THREE.BufferGeometry();
+const starCount = 280;
+const starPos = new Float32Array(starCount * 3);
+for (let i = 0; i < starCount * 3; i += 3) {
+  starPos[i]   = (Math.random() - 0.5) * 20;
+  starPos[i+1] = (Math.random() - 0.5) * 14 + 1;
+  starPos[i+2] = (Math.random() - 0.5) * 8 - 5;
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+const starMat = new THREE.PointsMaterial({ color: 0xffd0e0, size: 0.045, transparent: true, opacity: 0.65 });
+scene.add(new THREE.Points(starGeo, starMat));
+// ── Animation loop ────────────────────────────────────────────────────────
+let clock = 0;
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  clock += 0.008;
+
+  // ── DRAMATIC BLOOM ANIMATION ─────────────────────────────────────────
+  const bloomDuration = 12; // 12 seconds for slow, elegant bloom
+  const bloomProgress = Math.min(clock / bloomDuration, 1);
+  
+  petalAnimData.forEach((petal) => {
+    const layer = petal.userData.layer;
+    const layerDelay = layer * 0.10;
+    const adjustedBloom = Math.max(0, bloomProgress - layerDelay) / (1 - layerDelay * 0.4);
+    
+    if (adjustedBloom > 0) {
+      const eased = easeOutCubic(Math.min(adjustedBloom, 1));
+      const spreadFactor = layer / (layerCount - 1);
+      
+      // Bloom naturally: tilt petals from base position to open position
+      const baseTilt = baseTiltAngles[layer];
+      const openTilt = baseTilt + 0.5 + spreadFactor * 0.3; // Moderate opening
+      petal.rotation.x = baseTilt + eased * (openTilt - baseTilt);
+      
+      // Slight spreading - not too much
+      const softSpread = eased * 0.15 * spreadFactor; // Gentle spread
+      const angle = petal.userData.baseAngle;
+      petal.position.x = Math.cos(angle) * softSpread;
+      petal.position.z = Math.sin(angle) * softSpread;
+      petal.position.y = eased * 0.15;
+      
+      // Scale petals: grow from small bud to full size
+      const startScale = petal.userData.startScale;
+      const finalScale = 1.0 + eased * 0.3;
+      petal.scale.y = startScale + eased * (finalScale - startScale);
+      
+      // Add subtle breathing pulse during bloom
+      const pulse = Math.sin(clock * 0.9 + layer * 0.3) * 0.015 * eased;
+      petal.scale.x = 1 + pulse;
+      petal.scale.z = 1 + pulse;
+    }
+  });
+
+  // After bloom completes, gentle pulsing
+  if (bloomProgress >= 1) {
+    const pulse = Math.sin(clock * 0.7) * 0.04;
+    petalAnimData.forEach((petal) => {
+      petal.scale.x = 1.4 + pulse;
+      petal.scale.z = 1.4 + pulse;
+    });
+  }
+
+  // Gentle sway
+  flowerGroup.rotation.z = Math.sin(clock * 0.7) * 0.04;
+  flowerGroup.rotation.y = clock * 0.25;
+
+  // Lights pulse
+  pinkLight.intensity  = 2.5 + Math.sin(clock * 1.3) * 0.8;
+  roseLight.intensity  = 1.8 + Math.cos(clock * 0.9) * 0.6;
+  greenLight.intensity = 1.2 + Math.sin(clock * 0.6) * 0.4;
+
+  // Orbit camera
+  camera.position.x = Math.sin(clock * 0.18) * 1.2;
+  camera.position.y = 1 + Math.sin(clock * 0.12) * 0.3;
+  camera.lookAt(0, 0.4, 0);
+
+  renderer.render(scene, camera);
+}
+
+animate();
+// ── Resize ────────────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
