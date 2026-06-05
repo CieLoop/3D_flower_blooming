@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gửi tặng em</title>
+<title>Simple Flower</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -99,7 +99,7 @@
   <canvas id="webgl"></canvas>
   <div id="particles"></div>
   <div id="message">
-    <span class="line1">Gửi tặng em bé 20 tuổi của anh !!!</span>
+    <span class="line1">Simple Flower</span>
     <span class="hearts">❤ ❤ ❤</span>
   </div>
 </div>
@@ -203,25 +203,25 @@ function makePetal(angleY, layer, openness, colorHex) {
   const petalGroup = new THREE.Group();
   petalGroup.rotation.y = angleY;
   const spread  = openness;
-  const length  = 0.6 + layer * 0.18;
+  const length  = 0.75 + layer * 0.18;  // Increased from 0.6 + layer * 0.18 for wider petals
   const arch    = 0.5 + layer * 0.1;
   const baseZ   = layer * 0.08;
   // 3 ribs per petal
   for (let r = -1; r <= 1; r++) {
-    const xOff = r * 0.12 * length;
+    const xOff = r * 0.2 * length;  // Increased from 0.14 for much wider spread
     const pts = [
       new THREE.Vector3(xOff * 0.2, 0, baseZ),
       new THREE.Vector3(xOff * 0.6, length * 0.3 * spread + arch * 0.3, baseZ + length * 0.4), //
       new THREE.Vector3(xOff,       length * spread,                    baseZ + length * 0.1),
       new THREE.Vector3(xOff * 0.5, length * spread + arch * spread,   baseZ - length * 0.15)
     ];
-    petalGroup.add(tubeLine(pts, colorHex, 0.022, 5));
+    petalGroup.add(tubeLine(pts, colorHex, 0.048, 5));  // Increased from 0.032 for much thicker ribs
   }
   // cross veins
   for (let v = 0.25; v < 0.9; v += 0.25) {
-    const leftRib  = new THREE.Vector3(-0.12 * length, length * v * spread, baseZ + length * (0.4 - v * 0.3));
-    const rightRib = new THREE.Vector3( 0.12 * length, length * v * spread, baseZ + length * (0.4 - v * 0.3));
-    petalGroup.add(tubeLine([leftRib, rightRib], colorHex, 0.012, 4));
+    const leftRib  = new THREE.Vector3(-0.22 * length, length * v * spread, baseZ + length * (0.4 - v * 0.3));  // Updated width
+    const rightRib = new THREE.Vector3( 0.22 * length, length * v * spread, baseZ + length * (0.4 - v * 0.3));  // Updated width
+    petalGroup.add(tubeLine([leftRib, rightRib], colorHex, 0.024, 4));  // Increased from 0.016 for much thicker veins
   }
   return petalGroup;
 }
@@ -241,7 +241,7 @@ for (let L = 0; L < layerCount; L++) {
     const angle  = (i / n) * Math.PI * 2 + L * 0.31;
     const petal  = makePetal(angle, L, openness[L], color);
     // Start CLOSED: all petals nearly vertical (very small tilt)
-    petal.rotation.x = -0.02; // nearly upright = closed bud
+    petal.rotation.x = -0.05; // nearly upright = closed bud
     // Store bloom animation metadata
     const bloomDelay = L * LAYER_STAGGER; // inner layers start first
     const bloomDur   = 3.0 + L * 0.5;    // outer layers take longer to open
@@ -251,7 +251,7 @@ for (let L = 0; L < layerCount; L++) {
       layer: L,
       index: i,
       targetTilt: targetTilt[L],
-      startTilt: -0.02,
+      startTilt: -0.05,
       bloomDelay: bloomDelay + jitter * 0.3,
       bloomDuration: bloomDur,
       // Also animate scale: start small, grow to full

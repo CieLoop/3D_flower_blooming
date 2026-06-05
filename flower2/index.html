@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gửi tặng em</title>
+<title>Rose</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -99,7 +99,7 @@
   <canvas id="webgl"></canvas>
   <div id="particles"></div>
   <div id="message">
-    <span class="line1">Gửi tặng em bé 20 tuổi của anh !!!</span>
+    <span class="line1">Rose</span>
     <span class="hearts">❤ ❤ ❤</span>
   </div>
 </div>
@@ -168,7 +168,7 @@ function tubeLine(points, color, radius = 0.025, radialSegments = 6, tubularSegm
     emissiveIntensity: 0.35,
     shininess: 100,
     transparent: true,
-    opacity: 0.92,
+    opacity: 0.7,
     side: THREE.DoubleSide
   });
   return new THREE.Mesh(geo, mat);
@@ -195,8 +195,8 @@ function addLeaf(startY, side, tilt) {
   const pts = [
     new THREE.Vector3(0, startY, 0),
     new THREE.Vector3(s*0.5, startY + 0.4, tilt * 0.2),
-    new THREE.Vector3(s*1.1, startY + 0.6, tilt * 0.5),
-    new THREE.Vector3(s*1.6, startY + 0.35, tilt * 0.3),
+    new THREE.Vector3(s*1.1, startY + 0.6, tilt * 0.2),
+    new THREE.Vector3(s*1.6, startY + 0.35, tilt * 0.2),
     new THREE.Vector3(s*1.05, startY + 0.1, 0)
   ];
   scene.add(tubeLine(pts, 0x33bb44, 0.032, 6, 30));
@@ -220,9 +220,9 @@ function makePetal(angleY, layer, openness, colorHex) {
   const petalGroup = new THREE.Group();
   petalGroup.rotation.y = angleY;
 
-  // INCREASED RIB COUNT for smooth opening (was 3, now many!)
-  const ribCount   = 9 + layer * 3;         // 9 → 27 ribs for extremely smooth wings
-  const halfWidth  = 0.16 + layer * 0.06;   
+  // INCREASED RIB COUNT for solid, compact petals that stick together
+  const ribCount   = 22 + layer * 5;         // Much more ribs for no gaps
+  const halfWidth  = 0.20 + layer * 0.08;   // Wider spread for overlap
   const length     = 0.6 + layer * 0.18;
   const arch       = 0.5 + layer * 0.1;
   const baseZ      = layer * 0.08;
@@ -240,8 +240,8 @@ function makePetal(angleY, layer, openness, colorHex) {
     const ribArch = arch * (1 - Math.abs(u) * 0.4);
     const ribLength = length * (0.8 + widthFactor * 0.2);
     
-    // Rib radius: thicker at center, thinner at edges
-    const ribRadius = 0.015 + (0.006 * widthFactor);
+    // Rib radius: much thicker to overlap and cover gaps
+    const ribRadius = 0.05 + (0.02 * widthFactor);
 
     // Build curved rib points
     const pts = [
@@ -279,8 +279,8 @@ function makePetal(angleY, layer, openness, colorHex) {
       if (step >= 2) rightPts.push(veinPt);
     }
     
-    petalGroup.add(tubeLine(leftPts, colorHex, 0.008, 4));
-    petalGroup.add(tubeLine(rightPts, colorHex, 0.008, 4));
+    petalGroup.add(tubeLine(leftPts, colorHex, 0.016, 4));  // Thicker from 0.008
+    petalGroup.add(tubeLine(rightPts, colorHex, 0.016, 4));  // Thicker from 0.008
   });
 
   return petalGroup;
@@ -360,7 +360,7 @@ function animate() {
   clock += 0.008;
 
   // ── DRAMATIC BLOOM ANIMATION ─────────────────────────────────────────
-  const bloomDuration = 12; // 12 seconds for slow, elegant bloom
+  const bloomDuration = 6; // 6 seconds for slow, elegant bloom
   const bloomProgress = Math.min(clock / bloomDuration, 1);
   
   petalAnimData.forEach((petal) => {
@@ -378,7 +378,7 @@ function animate() {
       petal.rotation.x = baseTilt + eased * (openTilt - baseTilt);
       
       // Slight spreading - not too much
-      const softSpread = eased * 0.15 * spreadFactor; // Gentle spread
+      const softSpread = eased * 0.05 * spreadFactor; // Gentle spread
       const angle = petal.userData.baseAngle;
       petal.position.x = Math.cos(angle) * softSpread;
       petal.position.z = Math.sin(angle) * softSpread;
@@ -398,7 +398,7 @@ function animate() {
 
   // After bloom completes, gentle pulsing
   if (bloomProgress >= 1) {
-    const pulse = Math.sin(clock * 0.7) * 0.04;
+    const pulse = Math.sin(clock * 0.7) * 0.3;
     petalAnimData.forEach((petal) => {
       petal.scale.x = 1.4 + pulse;
       petal.scale.z = 1.4 + pulse;
@@ -406,8 +406,8 @@ function animate() {
   }
 
   // Gentle sway
-  flowerGroup.rotation.z = Math.sin(clock * 0.7) * 0.04;
-  flowerGroup.rotation.y = clock * 0.25;
+  flowerGroup.rotation.z = Math.sin(clock * 0.7) * 1;
+  flowerGroup.rotation.y = clock * 0.5;
 
   // Lights pulse
   pinkLight.intensity  = 2.5 + Math.sin(clock * 1.3) * 0.8;
